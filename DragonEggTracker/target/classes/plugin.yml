@@ -1,0 +1,30 @@
+name: DragonEggTracker
+version: '1.0-SNAPSHOT'
+main: me.maxgim234.dragonEggTracker.DragonEggTracker
+api-version: '1.21'
+
+commands:
+  dragoneggowner:
+    description: Shows who last picked up the Dragon Egg
+    usage: /dragoneggowner
+    permission: dragoneggtracker.dragoneggowner
+
+  dragonegglocate:
+    description: Shows the current Dragon Egg location
+    usage: /dragonegglocate
+    permission: dragoneggtracker.admin
+
+  dragontracker:
+    description: Reloads the plugin
+    usage: /dragontracker reload
+    permission: dragoneggtracker.admin
+
+
+
+permissions:
+  dragoneggtracker.eggowner:
+    default: true
+  dragoneggtracker.admin:
+    default: op
+
+

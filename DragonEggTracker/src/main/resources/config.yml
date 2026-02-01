@@ -1,0 +1,50 @@
+# Allow Dragon Egg in ender chests
+allow-enderchest-egg: false
+
+# Disable tracking if owner is offline
+disable-tracking-if-owner-offline: true
+
+# Compass update interval (ticks)
+compass-update-interval: 100
+
+# Containers where Dragon Egg CANNOT be placed
+prevent-containers:
+  - HOPPER
+  - DROPPER
+  - DISPENSER
+  - HOPPER_MINECART
+
+egg-pickup-announcement:
+  enabled: true
+  message: "&d🐉 %player% has claimed the Dragon Egg!"
+
+
+
+tracker-compass-recipe:
+  enabled: true
+  permission: dragoneggtracker.craft
+
+  shape:
+    - "ABA"
+    - "BCB"
+    - "ABA"
+
+  ingredients:
+    A: DRAGON_BREATH
+    B: ENDER_EYE
+    C: RECOVERY_COMPASS
+
+
+egg-holder-buffs:
+  enabled: true
+
+  extra-hearts: 4   # +4 hearts = +8 HP
+
+  potion-effects:
+    STRENGTH:
+      duration: 999999
+      amplifier: 1
+    FIRE_RESISTANCE:
+      duration: 999999
+      amplifier: 0
+
