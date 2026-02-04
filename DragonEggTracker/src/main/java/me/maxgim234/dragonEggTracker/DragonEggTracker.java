@@ -1,8 +1,6 @@
 package me.maxgim234.dragonEggTracker;
 
-import me.maxgim234.dragonEggTracker.commands.EggLocateCommand;
-import me.maxgim234.dragonEggTracker.commands.EggOwnerCommand;
-import me.maxgim234.dragonEggTracker.commands.DragonTrackerCommand;
+import me.maxgim234.dragonEggTracker.commands.DragonCommand;
 import me.maxgim234.dragonEggTracker.gui.RecipePreviewGUI;
 import me.maxgim234.dragonEggTracker.items.TrackerCompass;
 import me.maxgim234.dragonEggTracker.items.TrackerRecipe;
@@ -44,19 +42,15 @@ public final class DragonEggTracker extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new EggBlockListener(eggManager), this
         );
+        getServer().getPluginManager().registerEvents(
+                new RecipePreviewListener(), this
+        );
 
         // --------------------
-        // Register commands
+        // Register unified command
         // --------------------
-        getCommand("dragoneggowner").setExecutor(
-                new EggOwnerCommand(eggManager)
-        );
-        getCommand("dragonegglocate").setExecutor(
-                new EggLocateCommand(eggManager)
-        );
-        getCommand("dragontracker").setExecutor(
-                new DragonTrackerCommand(this)
-        );
+        DragonCommand dragonCommand = new DragonCommand(this, eggManager);
+        getCommand("dragon").setExecutor(dragonCommand);
 
         // --------------------
         // Tracker compass
@@ -76,11 +70,6 @@ public final class DragonEggTracker extends JavaPlugin {
         );
 
         getLogger().info("DragonEggTracker enabled");
-
-        getServer().getPluginManager().registerEvents(
-                new RecipePreviewListener(), this
-        );
-
     }
 
     @Override
