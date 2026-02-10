@@ -1,13 +1,11 @@
 package me.maxgim234.dragonEggTracker;
 
-import me.maxgim234.dragonEggTracker.commands.EggLocateCommand;
-import me.maxgim234.dragonEggTracker.commands.EggOwnerCommand;
-import me.maxgim234.dragonEggTracker.commands.DragonTrackerCommand;
-import me.maxgim234.dragonEggTracker.gui.RecipePreviewGUI;
+import me.maxgim234.dragonEggTracker.commands.DragonCommand;
 import me.maxgim234.dragonEggTracker.items.TrackerCompass;
 import me.maxgim234.dragonEggTracker.items.TrackerRecipe;
 import me.maxgim234.dragonEggTracker.listeners.*;
 import me.maxgim234.dragonEggTracker.tracking.CompassTrackerTask;
+import me.maxgim234.dragonEggTracker.tracking.EggBuffTask;
 import me.maxgim234.dragonEggTracker.tracking.EggManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,15 +18,11 @@ public final class DragonEggTracker extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        // Create config.yml if not exists
         saveDefaultConfig();
 
-        // Initialize egg manager
         eggManager = new EggManager(this);
 
-        // --------------------
         // Register listeners
-        // --------------------
         getServer().getPluginManager().registerEvents(
                 new EggPickupListener(this, eggManager), this
         );
@@ -44,23 +38,23 @@ public final class DragonEggTracker extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new EggBlockListener(eggManager), this
         );
-
-        // --------------------
-        // Register commands
-        // --------------------
-        getCommand("dragoneggowner").setExecutor(
-                new EggOwnerCommand(eggManager)
+        getServer().getPluginManager().registerEvents(
+                new RecipePreviewListener(), this
         );
-        getCommand("dragonegglocate").setExecutor(
-                new EggLocateCommand(eggManager)
-        );
-        getCommand("dragontracker").setExecutor(
-                new DragonTrackerCommand(this)
+        getServer().getPluginManager().registerEvents(
+                new RecipeCraftListener(this), this
         );
 
-        // --------------------
+        // Store EggBuffListener reference for use with EggBuffTask
+        EggBuffListener eggBuffListener = new EggBuffListener(this, eggManager);
+        getServer().getPluginManager().registerEvents(eggBuffListener, this);
+
+        // tab completion
+        DragonCommand dragonCommand = new DragonCommand(this, eggManager);
+        getCommand("dragon").setExecutor(dragonCommand);
+        getCommand("dragon").setTabCompleter(dragonCommand);
+
         // Tracker compass
-        // --------------------
         TrackerCompass.init(this);
         TrackerRecipe.register(this);
 
@@ -75,12 +69,21 @@ public final class DragonEggTracker extends JavaPlugin {
                 interval
         );
 
-        getLogger().info("DragonEggTracker enabled");
+        // Buff check task
+        if (getConfig().getBoolean("egg-holder-buffs.enabled")) {
+            EggBuffTask buffTask = new EggBuffTask(this, eggManager);
+            buffTask.setBuffListener(eggBuffListener); // Connect the listener
 
-        getServer().getPluginManager().registerEvents(
-                new RecipePreviewListener(), this
-        );
+            getServer().getScheduler().runTaskTimer(
+                    this,
+                    buffTask,
+                    20L,
+                    40L // Check every 2 seconds
+            );
+        }
 
+
+        getLogger().info("DragonEggTracker enabled successfully!");
     }
 
     @Override
@@ -91,9 +94,7 @@ public final class DragonEggTracker extends JavaPlugin {
         getLogger().info("DragonEggTracker disabled.");
     }
 
-    // --------------------
     // Getters
-    // --------------------
     public static DragonEggTracker getInstance() {
         return instance;
     }

@@ -1,10 +1,16 @@
+# ═══════════════════════════════════════════════════════════════
+#               Dragon Egg Tracker Configuration
+#                    Made by maxgim234
+# ═══════════════════════════════════════════════════════════════
+
+
 # Allow Dragon Egg in ender chests
 allow-enderchest-egg: false
 
-# Disable tracking if owner is offline
+# If false the tracker will track the dragon egg owner even when player is offline
 disable-tracking-if-owner-offline: true
 
-# Compass update interval (ticks)
+# Lower values is more accurate but more memory usage
 compass-update-interval: 100
 
 # Containers where Dragon Egg CANNOT be placed
@@ -14,32 +20,48 @@ prevent-containers:
   - DISPENSER
   - HOPPER_MINECART
 
+# ───────────────────────────────────────────────────────────────
+# Egg Pickup Announcement
+# ───────────────────────────────────────────────────────────────
+
 egg-pickup-announcement:
   enabled: true
-  message: "&d🐉 %player% has claimed the Dragon Egg!"
+  message: "&d%player% has claimed the Dragon Egg!"
 
-
+# ───────────────────────────────────────────────────────────────
+# Tracker Compass Recipe
+# ───────────────────────────────────────────────────────────────
 
 tracker-compass-recipe:
   enabled: true
   permission: dragoneggtracker.craft
 
+  # Recipe shape (A, B, C are placeholders for ingredients)
   shape:
     - "ABA"
     - "BCB"
     - "ABA"
 
+  # Ingredients (match the letters in shape above)
   ingredients:
     A: DRAGON_BREATH
     B: ENDER_EYE
     C: RECOVERY_COMPASS
 
+# ───────────────────────────────────────────────────────────────
+# Egg Holder Buffs
+# ───────────────────────────────────────────────────────────────
 
 egg-holder-buffs:
   enabled: true
 
-  extra-hearts: 4   # +4 hearts = +8 HP
+  # Extra hearts for egg holder (each heart = 2 HP)
+  # 4 extra hearts = +8 max health
+  extra-hearts: 4
 
+  # Potion effects applied to egg holder
+  # Duration: ticks (20 ticks = 1 second, 999999 = ~13.8 hours)
+  # Amplifier: effect level (0 = level I, 1 = level II, etc.)
   potion-effects:
     STRENGTH:
       duration: 999999
@@ -47,4 +69,16 @@ egg-holder-buffs:
     FIRE_RESISTANCE:
       duration: 999999
       amplifier: 0
+
+
+# ───────────────────────────────────────────────────────────────
+# Advanced Options
+# ───────────────────────────────────────────────────────────────
+
+# Enable debug logging
+debug-mode: false
+
+# Automatically save egg data every X ticks
+# Set to 0 to disable auto-save (only saves on plugin disable) !not recomended
+auto-save-interval: 6000  # 5 minutes
 

@@ -4,27 +4,21 @@ main: me.maxgim234.dragonEggTracker.DragonEggTracker
 api-version: '1.21'
 
 commands:
-  dragoneggowner:
-    description: Shows who last picked up the Dragon Egg
-    usage: /dragoneggowner
-    permission: dragoneggtracker.dragoneggowner
-
-  dragonegglocate:
-    description: Shows the current Dragon Egg location
-    usage: /dragonegglocate
-    permission: dragoneggtracker.admin
-
-  dragontracker:
-    description: Reloads the plugin
-    usage: /dragontracker reload
-    permission: dragoneggtracker.admin
-
-
+  dragon:
+    description: Main Dragon Egg Tracker command
+    usage: |
+      /dragon help - Shows help
+      /dragon owner - Shows who owns the Dragon Egg
+      /dragon locate - Shows the Dragon Egg location (Admin)
+      /dragon recipe - Displays the Tracker Compass recipe
+      /dragon reload - Reloads the plugin (Admin)
+    aliases: [dragoneggtracker] [det]
 
 permissions:
-  dragoneggtracker.eggowner:
-    default: true
   dragoneggtracker.admin:
+    description: Allows access to admin commands
     default: op
-
+  dragoneggtracker.craft:
+    description: Allows crafting the Dragon Egg Tracker compass
+    default: true
 

@@ -22,7 +22,7 @@ public class CompassTrackerTask implements Runnable {
         Location eggLoc = eggManager.getEggLocation();
         if (eggLoc == null) return;
 
-        // Offline-owner rule
+        // Offline-owner
         if (plugin.getConfig().getBoolean("disable-tracking-if-owner-offline")) {
             if (eggManager.getOwner() != null && !eggManager.getOwner().isOnline()) {
                 return;
