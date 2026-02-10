@@ -38,7 +38,7 @@ public class EggManager {
     }
 
 
-    // ===== Ownership =====
+    // Ownership
     public void setOwner(UUID uuid, String name) {
         this.ownerUUID = uuid;
         this.ownerName = name;
@@ -53,7 +53,7 @@ public class EggManager {
         return ownerName;
     }
 
-    // ===== Location =====
+    // Location
     public void setEggLocation(Location location, EggState state) {
         this.eggLocation = location;
         this.eggState = state;
@@ -67,7 +67,7 @@ public class EggManager {
         return eggState;
     }
 
-    // ===== Persistence (stub for now) =====
+    // Persistence
     public void saveData() {
         try {
             if (ownerUUID != null) {
