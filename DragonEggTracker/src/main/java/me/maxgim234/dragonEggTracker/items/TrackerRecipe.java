@@ -28,6 +28,10 @@ public class TrackerRecipe {
         }
 
         NamespacedKey key = new NamespacedKey(plugin, "dragon_egg_tracker");
+
+        // Remove existing recipe if it exists (for reload support)
+        Bukkit.removeRecipe(key);
+
         ShapedRecipe recipe = new ShapedRecipe(key, TrackerCompass.create());
 
         recipe.shape(

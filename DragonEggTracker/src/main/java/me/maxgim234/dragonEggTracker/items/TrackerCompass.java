@@ -19,13 +19,12 @@ public class TrackerCompass {
     }
 
     public static ItemStack create() {
-        ItemStack item = new ItemStack(Material.RECOVERY_COMPASS);
+        ItemStack item = new ItemStack(Material.COMPASS);
         ItemMeta meta = item.getItemMeta();
 
         meta.setDisplayName("§dDragon Egg Tracker");
         meta.setLore(List.of(
-                "§7Points to the Dragon Egg",
-                "§8Works across inventories"
+                "§7Points to the Dragon Egg"
         ));
 
         meta.getPersistentDataContainer().set(

@@ -30,6 +30,11 @@ public class InventoryBlockListener implements Listener {
 
         InventoryType targetType = event.getInventory().getType();
 
+        // Always block hoppers
+        if (targetType == InventoryType.HOPPER) {
+            event.setCancelled(true);
+            return;
+        }
         // Ender chest check
         if (!plugin.getConfig().getBoolean("allow-enderchest-egg")
                 && targetType == InventoryType.ENDER_CHEST) {
