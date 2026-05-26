@@ -18,7 +18,16 @@ prevent-containers:
   - HOPPER
   - DROPPER
   - DISPENSER
-  - HOPPER_MINECART
+  - CHEST
+
+# Prevent the Dragon Egg item from being destroyed by any means:
+# If the egg falls into the void it will be teleported back to a safe Y level.
+prevent-egg-destruction: true
+
+egg-void-rescue:
+  # Placeholders: %world%, %x%, %y%, %z%
+  message: "&d&lThe Dragon Egg &r&dfell into the void and was rescued at &e%world% &7[&f%x%&7, &f%y%&7, &f%z%&7]&d!"
+
 
 # ───────────────────────────────────────────────────────────────
 # Egg Pickup Announcement
@@ -39,14 +48,15 @@ tracker-compass-recipe:
   # Recipe shape (A, B, C are placeholders for ingredients)
   shape:
     - "ABA"
-    - "BCB"
+    - "DCD"
     - "ABA"
 
   # Ingredients (match the letters in shape above)
   ingredients:
     A: DRAGON_BREATH
     B: ENDER_EYE
-    C: RECOVERY_COMPASS
+    C: COMPASS
+    D: ENDER_PEARL
 
 # ───────────────────────────────────────────────────────────────
 # Egg Holder Buffs

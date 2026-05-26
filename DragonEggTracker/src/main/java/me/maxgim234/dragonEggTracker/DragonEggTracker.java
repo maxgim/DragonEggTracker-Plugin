@@ -44,6 +44,27 @@ public final class DragonEggTracker extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new RecipeCraftListener(this), this
         );
+        getServer().getPluginManager().registerEvents(
+                new EggDropListener(eggManager), this
+        );
+        getServer().getPluginManager().registerEvents(
+                new HopperPickupListener(), this
+        );
+        getServer().getPluginManager().registerEvents(
+                new EggDestructionListener(this, eggManager), this
+        );
+
+        // Void listener — kept as a field so we can schedule its polling task
+        EggVoidListener eggVoidListener = new EggVoidListener(this, eggManager);
+        getServer().getPluginManager().registerEvents(eggVoidListener, this);
+
+        // Poll every 5 ticks — catches items the engine removes before the damage event fires
+        getServer().getScheduler().runTaskTimer(
+                this,
+                eggVoidListener::runVoidCheck,
+                20L,
+                5L
+        );
 
         // Store EggBuffListener reference for use with EggBuffTask
         EggBuffListener eggBuffListener = new EggBuffListener(this, eggManager);

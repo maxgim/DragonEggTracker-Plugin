@@ -20,7 +20,11 @@ public class ContainerUtil {
             try {
                 blockedContainers.add(InventoryType.valueOf(name));
             } catch (IllegalArgumentException e) {
-                Bukkit.getLogger().warning("[DragonEggTracker] Invalid container type: " + name);
+                if (name.equals("HOPPER_MINECART")) {
+                    plugin.getLogger().info("[DragonEggTracker] Note: HOPPER_MINECART is not a valid InventoryType. Hopper minecarts use the HOPPER type, which is already blocked by the code.");
+                } else {
+                    plugin.getLogger().warning("[DragonEggTracker] Invalid container type in config: " + name);
+                }
             }
         }
     }

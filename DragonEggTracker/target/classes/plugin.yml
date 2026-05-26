@@ -12,7 +12,7 @@ commands:
       /dragon locate - Shows the Dragon Egg location (Admin)
       /dragon recipe - Displays the Tracker Compass recipe
       /dragon reload - Reloads the plugin (Admin)
-    aliases: [dragoneggtracker]
+    aliases: [dragoneggtracker, det]
 
 permissions:
   dragoneggtracker.admin:
