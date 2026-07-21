@@ -10,6 +10,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 
 public class InventoryBlockListener implements Listener {
 
@@ -29,6 +31,14 @@ public class InventoryBlockListener implements Listener {
         if (item == null || item.getType() != Material.DRAGON_EGG) return;
 
         InventoryType targetType = event.getInventory().getType();
+
+        // Block all containers if configured
+        if (ContainerUtil.isAllBlocked()
+                && targetType != InventoryType.PLAYER
+                && targetType != InventoryType.CRAFTING) {
+            event.setCancelled(true);
+            return;
+        }
 
         // Always block hoppers
         if (targetType == InventoryType.HOPPER) {
@@ -54,6 +64,28 @@ public class InventoryBlockListener implements Listener {
                     event.getInventory().getLocation(),
                     EggState.CONTAINER
             );
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        InventoryType type = event.getInventory().getType();
+
+        if (type == InventoryType.PLAYER || type == InventoryType.CRAFTING) return;
+        if (!ContainerUtil.isAllBlocked() && !ContainerUtil.isBlocked(type)
+                && (plugin.getConfig().getBoolean("allow-enderchest-egg") || type != InventoryType.ENDER_CHEST)
+                && type != InventoryType.HOPPER) return;
+
+        if (event.getInventory().getLocation() == null) return;
+
+        for (int i = 0; i < event.getInventory().getSize(); i++) {
+            ItemStack item = event.getInventory().getItem(i);
+            if (item != null && item.getType() == Material.DRAGON_EGG) {
+                event.getInventory().setItem(i, null);
+                event.getInventory().getLocation().getWorld().dropItemNaturally(
+                        event.getInventory().getLocation(), item
+                );
+            }
         }
     }
 }

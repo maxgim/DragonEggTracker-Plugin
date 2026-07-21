@@ -7,18 +7,22 @@
 # Allow Dragon Egg in ender chests
 allow-enderchest-egg: false
 
+# Prevent the Dragon Egg from being placed as a block
+prevent-egg-placement: false
+
 # If false the tracker will track the dragon egg owner even when player is offline
 disable-tracking-if-owner-offline: true
 
 # Lower values is more accurate but more memory usage
 compass-update-interval: 100
 
-# Containers where Dragon Egg CANNOT be placed
+# Containers where Dragon Egg CANNOT be placed. If prevent-all-containers is true,
+# it overwrites the prevent-containers too.
+prevent-all-containers: false
 prevent-containers:
   - HOPPER
   - DROPPER
   - DISPENSER
-  - CHEST
 
 # Prevent the Dragon Egg item from being destroyed by any means:
 # If the egg falls into the void it will be teleported back to a safe Y level.

@@ -1,6 +1,5 @@
 package me.maxgim234.dragonEggTracker.util;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -11,9 +10,11 @@ import java.util.Set;
 public class ContainerUtil {
 
     private static final Set<InventoryType> blockedContainers = new HashSet<>();
+    private static boolean blockAll = false;
 
     public static void load(JavaPlugin plugin) {
         blockedContainers.clear();
+        blockAll = plugin.getConfig().getBoolean("prevent-all-containers", false);
 
         List<String> list = plugin.getConfig().getStringList("prevent-containers");
         for (String name : list) {
@@ -27,6 +28,10 @@ public class ContainerUtil {
                 }
             }
         }
+    }
+
+    public static boolean isAllBlocked() {
+        return blockAll;
     }
 
     public static boolean isBlocked(InventoryType type) {
