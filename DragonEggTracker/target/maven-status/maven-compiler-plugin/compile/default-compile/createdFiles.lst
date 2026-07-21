@@ -1,5 +1,6 @@
 me\maxgim234\dragonEggTracker\listeners\DispenseListener.class
 me\maxgim234\dragonEggTracker\listeners\HopperMoveListener.class
+me\maxgim234\dragonEggTracker\listeners\EggVoidListener.class
 me\maxgim234\dragonEggTracker\commands\DragonCommand.class
 me\maxgim234\dragonEggTracker\listeners\EggBuffListener.class
 me\maxgim234\dragonEggTracker\tracking\EggManager.class
@@ -7,11 +8,14 @@ me\maxgim234\dragonEggTracker\tracking\CompassTrackerTask.class
 me\maxgim234\dragonEggTracker\DragonEggTracker.class
 me\maxgim234\dragonEggTracker\tracking\EggState.class
 me\maxgim234\dragonEggTracker\listeners\EggBlockListener.class
+me\maxgim234\dragonEggTracker\listeners\HopperPickupListener.class
 me\maxgim234\dragonEggTracker\items\TrackerRecipe.class
 me\maxgim234\dragonEggTracker\items\TrackerCompass.class
 me\maxgim234\dragonEggTracker\listeners\EggPickupListener.class
 me\maxgim234\dragonEggTracker\gui\RecipePreviewGUI.class
 me\maxgim234\dragonEggTracker\listeners\InventoryBlockListener.class
+me\maxgim234\dragonEggTracker\listeners\EggDestructionListener.class
+me\maxgim234\dragonEggTracker\listeners\EggDropListener.class
 me\maxgim234\dragonEggTracker\listeners\RecipePreviewListener.class
 me\maxgim234\dragonEggTracker\util\ContainerUtil.class
 me\maxgim234\dragonEggTracker\listeners\RecipeCraftListener.class

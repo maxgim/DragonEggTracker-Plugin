@@ -45,7 +45,7 @@ public final class DragonEggTracker extends JavaPlugin {
                 new DispenseListener(this), this
         );
         getServer().getPluginManager().registerEvents(
-                new EggBlockListener(eggManager), this
+                new EggBlockListener(eggManager, this), this
         );
         getServer().getPluginManager().registerEvents(
                 new RecipePreviewListener(), this
