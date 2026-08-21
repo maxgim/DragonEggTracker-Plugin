@@ -3,6 +3,7 @@ package me.maxgim234.dragonEggTracker.commands;
 import me.maxgim234.dragonEggTracker.gui.RecipePreviewGUI;
 import me.maxgim234.dragonEggTracker.tracking.EggManager;
 import me.maxgim234.dragonEggTracker.tracking.EggState;
+import me.maxgim234.dragonEggTracker.tracking.EggStatsManager;
 import me.maxgim234.dragonEggTracker.items.TrackerRecipe;
 import me.maxgim234.dragonEggTracker.util.ContainerUtil;
 import org.bukkit.Location;
@@ -19,16 +20,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class DragonCommand implements CommandExecutor, TabCompleter {
 
     private final JavaPlugin plugin;
     private final EggManager eggManager;
+    private final EggStatsManager statsManager;
 
-    public DragonCommand(JavaPlugin plugin, EggManager eggManager) {
+    public DragonCommand(JavaPlugin plugin, EggManager eggManager, EggStatsManager statsManager) {
         this.plugin = plugin;
         this.eggManager = eggManager;
+        this.statsManager = statsManager;
     }
 
     @Override
@@ -50,6 +55,12 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
             case "owner":
                 return handleOwner(sender);
 
+            case "top":
+                return handleTop(sender);
+
+            case "placeholders":
+                return handlePlaceholders(sender);
+
             case "locate":
                 return handleLocate(sender);
 
@@ -68,7 +79,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            List<String> completions = new ArrayList<>(Arrays.asList("help", "owner", "recipe"));
+            List<String> completions = new ArrayList<>(Arrays.asList("help", "owner", "recipe", "top", "placeholders"));
 
             if (sender.hasPermission("dragoneggtracker.admin")) {
                 completions.add("locate");
@@ -86,11 +97,13 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage("§d§l═══════════════════════════════");
-        sender.sendMessage("§d§lDragon Egg Tracker §7- §fCommands");
+        sender.sendMessage("§d§lDragon Egg Tracker §7- §fby maxgim234");
         sender.sendMessage("§d§l═══════════════════════════════");
         sender.sendMessage("");
         sender.sendMessage("§e/dragon help §7- §fShows all commands");
         sender.sendMessage("§e/dragon owner §7- §fShows who owns the Dragon Egg");
+        sender.sendMessage("§e/dragon top §7- §fShows the top 3 longest-holding players");
+        sender.sendMessage("§e/dragon placeholders §7- §fLists available PlaceholderAPI placeholders");
         sender.sendMessage("§e/dragon recipe §7- §fDisplays the Tracker Compass recipe");
 
         if (sender.hasPermission("dragoneggtracker.admin")) {
@@ -101,6 +114,43 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("");
         sender.sendMessage("§7You can also use §e/dragoneggtracker §7or §e/det §7instead of §e/dragon");
         sender.sendMessage("§d§l═══════════════════════════════");
+    }
+
+    private boolean handleTop(CommandSender sender) {
+        List<Map.Entry<UUID, Long>> top = statsManager.getTop(3);
+
+        sender.sendMessage("§d§l═══════════════════════════════");
+        sender.sendMessage("§d§lDragon Egg Top Holders");
+        sender.sendMessage("§d§l═══════════════════════════════");
+
+        if (top.isEmpty()) {
+            sender.sendMessage("§7No data yet.");
+        } else {
+            String[] labels = {"§6#1", "§7#2", "§c#3"};
+            for (int i = 0; i < top.size(); i++) {
+                Map.Entry<UUID, Long> entry = top.get(i);
+                sender.sendMessage(labels[i] + " §f" + statsManager.getName(entry.getKey())
+                        + " §7- §f" + EggStatsManager.formatDuration(entry.getValue()));
+            }
+        }
+
+        sender.sendMessage("§d§l═══════════════════════════════");
+        return true;
+    }
+
+    private boolean handlePlaceholders(CommandSender sender) {
+        sender.sendMessage("§d§l═══════════════════════════════");
+        sender.sendMessage("§d§lAvailable Placeholders §7(requires PlaceholderAPI)");
+        sender.sendMessage("§d§l═══════════════════════════════");
+        sender.sendMessage("§e%dragoneggtracker_holder% §7- Current holder's name");
+        sender.sendMessage("§e%dragoneggtracker_state% §7- Egg state (PLAYER/DROPPED/CONTAINER/etc.)");
+        sender.sendMessage("§e%dragoneggtracker_world% §7- World the egg is in");
+        sender.sendMessage("§e%dragoneggtracker_x%§7/§e%dragoneggtracker_y%§7/§e%dragoneggtracker_z% §7- Egg coordinates");
+        sender.sendMessage("§e%dragoneggtracker_online% §7- Whether the holder is online");
+        sender.sendMessage("§e%dragoneggtracker_top_1%§7/§e_2%§7/§e_3% §7- Top 3 holders' names (all-time)");
+        sender.sendMessage("§e%dragoneggtracker_top_1_time%§7/§e_2_time%§7/§e_3_time% §7- Their total hold time");
+        sender.sendMessage("§d§l═══════════════════════════════");
+        return true;
     }
 
     private boolean handleOwner(CommandSender sender) {

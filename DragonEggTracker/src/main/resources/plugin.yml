@@ -1,7 +1,8 @@
 name: DragonEggTracker
-version: '1.0-SNAPSHOT'
+version: '2.0.2m'
 main: me.maxgim234.dragonEggTracker.DragonEggTracker
 api-version: '1.21'
+softdepend: [PlaceholderAPI, Vault]
 
 commands:
   dragon:
@@ -9,6 +10,8 @@ commands:
     usage: |
       /dragon help - Shows help
       /dragon owner - Shows who owns the Dragon Egg
+      /dragon top - Shows the top 3 longest-holding players
+      /dragon placeholders - Lists available PlaceholderAPI placeholders
       /dragon locate - Shows the Dragon Egg location (Admin)
       /dragon recipe - Displays the Tracker Compass recipe
       /dragon reload - Reloads the plugin (Admin)

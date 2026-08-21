@@ -1,7 +1,7 @@
 package me.maxgim234.dragonEggTracker.listeners;
 
 import me.maxgim234.dragonEggTracker.DragonEggTracker;
-import org.bukkit.Material;
+import me.maxgim234.dragonEggTracker.util.ContainerUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDispenseEvent;
@@ -13,7 +13,7 @@ public class DispenseListener implements Listener {
 
     @EventHandler
     public void onDispense(BlockDispenseEvent event) {
-        if (event.getItem().getType() == Material.DRAGON_EGG) {
+        if (ContainerUtil.containsDragonEgg(event.getItem())) {
             event.setCancelled(true);
         }
     }
