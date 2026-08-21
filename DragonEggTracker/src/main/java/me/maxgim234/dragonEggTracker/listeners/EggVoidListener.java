@@ -8,12 +8,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class EggVoidListener implements Listener {
 
@@ -25,77 +26,234 @@ public class EggVoidListener implements Listener {
         this.eggManager = eggManager;
     }
 
-    // ── Event-based attempt (best-effort; engine may still remove the item) ──
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onVoidDamage(EntityDamageEvent event) {
-        if (event.getCause() != EntityDamageEvent.DamageCause.VOID) return;
+    @EventHandler
+    public void onEntitySpawn(EntitySpawnEvent event) {
 
         Entity entity = event.getEntity();
-        if (!(entity instanceof Item droppedItem)) return;
-        if (droppedItem.getItemStack().getType() != Material.DRAGON_EGG) return;
 
-        event.setCancelled(true);
-        rescueItem(droppedItem);
-    }
+        // Dropped Dragon Egg item
+        if (entity instanceof Item item) {
 
-    // ── Polling check — called every few ticks from a scheduled task ──────────
-    // Reliable fallback: catches cases where the engine removes the item before
-    // the damage event fires (which happens at very low Y values).
-
-    public void runVoidCheck() {
-        for (World world : Bukkit.getWorlds()) {
-            int voidThreshold = world.getMinHeight() + 10; // 10-block buffer above void floor
-
-            for (Entity entity : world.getEntities()) {
-                if (!(entity instanceof Item item)) continue;
-                if (item.getItemStack().getType() != Material.DRAGON_EGG) continue;
-                if (item.getLocation().getBlockY() > voidThreshold) continue;
-
-                rescueItem(item);
+            if (item.getItemStack().getType() != Material.DRAGON_EGG) {
+                return;
             }
+
+            if (!isTrackedEgg(item.getLocation())) {
+                return;
+            }
+
+            monitorEgg(item);
+            return;
+        }
+
+        // Falling Dragon Egg block
+        if (entity instanceof FallingBlock fallingBlock) {
+
+            if (fallingBlock.getBlockData().getMaterial()
+                    != Material.DRAGON_EGG) {
+                return;
+            }
+
+            if (!isTrackedEgg(fallingBlock.getLocation())) {
+                return;
+            }
+
+            monitorEgg(fallingBlock);
         }
     }
 
+    /**
+     * Checks whether the entity is the Dragon Egg currently
+     * tracked by EggManager.
+     */
+    private boolean isTrackedEgg(Location location) {
 
-    private void rescueItem(Item droppedItem) {
-        World world = droppedItem.getWorld();
-        Location itemLoc = droppedItem.getLocation();
+        Location trackedLocation = eggManager.getEggLocation();
 
-        Location safeLoc = findSafeLocation(world, itemLoc);
+        if (trackedLocation == null) {
+            return false;
+        }
 
-        droppedItem.teleport(safeLoc);
-        droppedItem.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        if (trackedLocation.getWorld() == null
+                || location.getWorld() == null) {
+            return false;
+        }
 
-        eggManager.setEggLocation(safeLoc, EggState.DROPPED);
-        eggManager.saveData();
+        if (!trackedLocation.getWorld().equals(location.getWorld())) {
+            return false;
+        }
+
+        // Allow a small difference between the stored location
+        // and the entity's actual spawn location.
+        return trackedLocation.distanceSquared(location) <= 4.0;
+    }
+
+    /**
+     * Monitors ONLY the tracked Dragon Egg.
+     *
+     * This does not scan all entities or worlds.
+     */
+    private void monitorEgg(Entity eggEntity) {
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+
+                // Entity no longer exists.
+                if (!eggEntity.isValid()) {
+                    cancel();
+                    return;
+                }
+
+                World world = eggEntity.getWorld();
+                Location location = eggEntity.getLocation();
+
+                /*
+                 * Rescue the egg before Minecraft removes it.
+                 */
+                if (location.getY() <= world.getMinHeight() - 5) {
+
+                    rescueEgg(eggEntity);
+
+                    cancel();
+                    return;
+                }
+
+                /*
+                 * For dropped Item entities, stop monitoring once
+                 * the egg has stopped falling.
+                 */
+                if (eggEntity instanceof Item item) {
+
+                    if (item.getVelocity().getY() >= 0
+                            && location.getY() > world.getMinHeight()) {
+                        cancel();
+                    }
+                }
+            }
+
+        }.runTaskTimer(plugin, 1L, 1L);
+    }
+
+    /**
+     * Rescues the Dragon Egg and recreates it as an actual block
+     * at a safe location.
+     */
+    private void rescueEgg(Entity entity) {
+
+        World world = entity.getWorld();
+
+        Location lastLocation = entity.getLocation().clone();
+
+        Location safeLocation = findSafeLocation(
+                world,
+                lastLocation
+        );
+
+        // Remove the original falling/dropped entity.
+        entity.remove();
+
+        /*
+         * Wait one tick before placing the replacement block.
+         * This prevents the old entity from interfering with the
+         * newly placed Dragon Egg.
+         */
+        Bukkit.getScheduler().runTask(plugin, () -> {
+
+            // Make sure the location is still safe.
+            if (!safeLocation.getChunk().isLoaded()) {
+                safeLocation.getChunk().load();
+            }
+
+            /*
+             * Place the Dragon Egg as a real Minecraft block,
+             * NOT as a dropped Item.
+             */
+            safeLocation.getBlock().setType(Material.DRAGON_EGG);
+
+            Location actualLocation = safeLocation.getBlock().getLocation();
+
+            /*
+             * Keep the tracked location updated.
+             *
+             * DROPPED is retained here because it is already used
+             * by your existing EggManager/EggState setup.
+             */
+            eggManager.setEggLocation(
+                    actualLocation,
+                    EggState.DROPPED
+            );
+
+            eggManager.saveData();
+
+            sendRescueMessage(
+                    world,
+                    actualLocation
+            );
+        });
+    }
+
+    /**
+     * Sends the configured rescue message.
+     */
+    private void sendRescueMessage(
+            World world,
+            Location safeLocation
+    ) {
 
         String msg = plugin.getConfig().getString(
                 "egg-void-rescue.message",
-                "&d&lThe Dragon Egg &r&dfell into the void and was rescued at &e%world% &7[&f%x%&7, &f%y%&7, &f%z%&7]&d!"
+                "&d&lThe Dragon Egg &r&dfell into the void and was rescued at "
+                        + "&e%world% &7[&f%x%&7, &f%y%&7, &f%z%&7]&d!"
         );
 
         msg = msg
                 .replace("%world%", world.getName())
-                .replace("%x%", String.valueOf(safeLoc.getBlockX()))
-                .replace("%y%", String.valueOf(safeLoc.getBlockY()))
-                .replace("%z%", String.valueOf(safeLoc.getBlockZ()));
+                .replace("%x%", String.valueOf(safeLocation.getBlockX()))
+                .replace("%y%", String.valueOf(safeLocation.getBlockY()))
+                .replace("%z%", String.valueOf(safeLocation.getBlockZ()));
 
-        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', msg));
+        Bukkit.broadcastMessage(
+                ChatColor.translateAlternateColorCodes('&', msg)
+        );
     }
 
-    private Location findSafeLocation(World world, Location nearLoc) {
-        int x = nearLoc.getBlockX();
-        int z = nearLoc.getBlockZ();
+    /**
+     * Finds a safe location above the highest block
+     * at the egg's X/Z coordinates.
+     */
+    private Location findSafeLocation(
+            World world,
+            Location nearLocation
+    ) {
 
-        int highY = world.getHighestBlockYAt(x, z);
+        int x = nearLocation.getBlockX();
+        int z = nearLocation.getBlockZ();
 
-        if (highY <= world.getMinHeight()) {
-            Location spawnLoc = world.getSpawnLocation().clone();
-            spawnLoc.add(0.5, 1, 0.5);
-            return spawnLoc;
+        int highestY = world.getHighestBlockYAt(x, z);
+
+        /*
+         * If there is no valid terrain at this location,
+         * fall back to world spawn.
+         */
+        if (highestY <= world.getMinHeight()) {
+
+            Location spawn = world.getSpawnLocation();
+
+            return new Location(
+                    world,
+                    spawn.getBlockX(),
+                    spawn.getBlockY() + 1,
+                    spawn.getBlockZ()
+            );
         }
 
-        return new Location(world, x + 0.5, highY + 1, z + 0.5);
+        return new Location(
+                world,
+                x,
+                highestY + 1,
+                z
+        );
     }
 }

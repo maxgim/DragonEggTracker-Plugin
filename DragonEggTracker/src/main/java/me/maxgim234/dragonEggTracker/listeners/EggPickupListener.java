@@ -1,6 +1,8 @@
 package me.maxgim234.dragonEggTracker.listeners;
 
+import me.maxgim234.dragonEggTracker.economy.EconomyHook;
 import me.maxgim234.dragonEggTracker.tracking.EggManager;
+import me.maxgim234.dragonEggTracker.tracking.EggStatsManager;
 import me.maxgim234.dragonEggTracker.tracking.EggState;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,10 +19,12 @@ public class EggPickupListener implements Listener {
 
     private final JavaPlugin plugin;
     private final EggManager eggManager;
+    private final EggStatsManager statsManager;
 
-    public EggPickupListener(JavaPlugin plugin, EggManager eggManager) {
+    public EggPickupListener(JavaPlugin plugin, EggManager eggManager, EggStatsManager statsManager) {
         this.plugin = plugin;
         this.eggManager = eggManager;
+        this.statsManager = statsManager;
     }
 
     @EventHandler
@@ -55,5 +59,24 @@ public class EggPickupListener implements Listener {
                     ChatColor.translateAlternateColorCodes('&', msg)
             );
         }
+
+        // First-pickup economy reward (one-time, per player)
+        if (plugin.getConfig().getBoolean("economy-rewards.first-pickup.enabled", false)
+                && EconomyHook.isEnabled()
+                && !statsManager.hasReceivedFirstPickupReward(player.getUniqueId())) {
+
+            statsManager.markFirstPickupRewarded(player.getUniqueId());
+
+            double amount = plugin.getConfig().getDouble("economy-rewards.first-pickup.amount", 0);
+            EconomyHook.deposit(player, amount);
+
+            String rewardMsg = plugin.getConfig().getString(
+                    "economy-rewards.first-pickup.message",
+                    "&d&lYou earned &e$%amount% &d&lfor picking up the Dragon Egg for the first time!"
+            ).replace("%amount%", String.valueOf(amount));
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', rewardMsg));
+        }
     }
 }
+

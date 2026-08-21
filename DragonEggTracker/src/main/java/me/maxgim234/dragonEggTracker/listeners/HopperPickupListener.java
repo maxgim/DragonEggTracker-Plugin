@@ -1,6 +1,6 @@
 package me.maxgim234.dragonEggTracker.listeners;
 
-import org.bukkit.Material;
+import me.maxgim234.dragonEggTracker.util.ContainerUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
@@ -10,7 +10,7 @@ public class HopperPickupListener implements Listener {
 
     @EventHandler
     public void onHopperPickup(InventoryPickupItemEvent event) {
-        if (event.getItem().getItemStack().getType() != Material.DRAGON_EGG) return;
+        if (!ContainerUtil.containsDragonEgg(event.getItem().getItemStack())) return;
 
         if (event.getInventory().getType() == InventoryType.HOPPER) {
             event.setCancelled(true);
