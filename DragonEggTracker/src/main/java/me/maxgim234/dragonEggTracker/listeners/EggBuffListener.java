@@ -22,14 +22,13 @@ import java.util.Set;
 public class EggBuffListener implements Listener {
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
+    private final EggManager manager;
 
-    // Track which players currently have egg buffs
-    private final Set<String> buffedPlayers = new HashSet<>();
+    private final Set<String> buffed = new HashSet<>();
 
-    public EggBuffListener(JavaPlugin plugin, EggManager eggManager) {
+    public EggBuffListener(JavaPlugin plugin, EggManager manager) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
+        this.manager = manager;
     }
 
     public boolean hasEgg(Player player) {
@@ -45,12 +44,12 @@ public class EggBuffListener implements Listener {
         if (!plugin.getConfig().getBoolean("egg-holder-buffs.enabled")) return;
         if (!hasEgg(player)) return;
 
-        int extraHearts = plugin.getConfig().getInt(
+        int hearts = plugin.getConfig().getInt(
                 "egg-holder-buffs.extra-hearts", 0
         );
 
         if (player.getAttribute(Attribute.MAX_HEALTH) != null) {
-            player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(20 + extraHearts * 2);
+            player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(20 + hearts * 2);
         }
 
         ConfigurationSection effects =
@@ -72,11 +71,11 @@ public class EggBuffListener implements Listener {
             );
         }
 
-        buffedPlayers.add(player.getName());
+        buffed.add(player.getName());
     }
 
     public void clearBuffs(Player player) {
-        if (!buffedPlayers.contains(player.getName())) return;
+        if (!buffed.contains(player.getName())) return;
 
         if (player.getAttribute(Attribute.MAX_HEALTH) != null) {
             player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(20);
@@ -96,12 +95,11 @@ public class EggBuffListener implements Listener {
             }
         }
 
-        buffedPlayers.remove(player.getName());
+        buffed.remove(player.getName());
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        // Delay buff application to ensure inventory is loaded
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             applyBuffs(event.getPlayer());
         }, 20L);
@@ -112,21 +110,19 @@ public class EggBuffListener implements Listener {
         clearBuffs(event.getPlayer());
     }
 
-    //Called periodically to maintain buffs
-    //Should be called from a repeating task in main plugin class
     public void checkAllPlayers() {
         if (!plugin.getConfig().getBoolean("egg-holder-buffs.enabled")) return;
 
-        OfflinePlayer owner = eggManager.getOwner();
+        OfflinePlayer owner = manager.getOwner();
         if (owner == null || !owner.isOnline()) return;
 
-        Player ownerPlayer = owner.getPlayer();
-        if (ownerPlayer == null) return;
+        Player player = owner.getPlayer();
+        if (player == null) return;
 
-        if (hasEgg(ownerPlayer)) {
-            applyBuffs(ownerPlayer);
-        } else if (buffedPlayers.contains(ownerPlayer.getName())) {
-            clearBuffs(ownerPlayer);
+        if (hasEgg(player)) {
+            applyBuffs(player);
+        } else if (buffed.contains(player.getName())) {
+            clearBuffs(player);
         }
     }
 }

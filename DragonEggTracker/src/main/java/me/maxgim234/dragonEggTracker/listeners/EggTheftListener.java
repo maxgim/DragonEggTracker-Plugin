@@ -15,11 +15,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class EggTheftListener implements Listener {
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
+    private final EggManager manager;
 
-    public EggTheftListener(JavaPlugin plugin, EggManager eggManager) {
+    public EggTheftListener(JavaPlugin plugin, EggManager manager) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
+        this.manager = manager;
     }
 
     @EventHandler
@@ -28,19 +28,19 @@ public class EggTheftListener implements Listener {
 
         Player victim = event.getEntity();
         Player killer = victim.getKiller();
-        if (killer == null) return; // not a PvP kill — not a "theft"
+        if (killer == null) return;
 
-        OfflinePlayer owner = eggManager.getOwner();
+        OfflinePlayer owner = manager.getOwner();
         if (owner == null || !victim.getUniqueId().equals(owner.getUniqueId())) return;
 
-        boolean droppingEgg = false;
+        boolean dropsEgg = false;
         for (ItemStack drop : event.getDrops()) {
             if (drop != null && drop.getType() == Material.DRAGON_EGG) {
-                droppingEgg = true;
+                dropsEgg = true;
                 break;
             }
         }
-        if (!droppingEgg) return; // keepInventory, curse of vanishing, etc. — egg never left them
+        if (!dropsEgg) return;
 
         String msg = plugin.getConfig().getString(
                 "egg-theft-announcement.message",

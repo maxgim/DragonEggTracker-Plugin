@@ -1,6 +1,7 @@
 package me.maxgim234.dragonEggTracker.listeners;
 
 import me.maxgim234.dragonEggTracker.items.TrackerCompass;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -20,7 +21,7 @@ public class RecipeCraftListener implements Listener {
         ItemStack result = event.getRecipe() == null ? null : event.getRecipe().getResult();
         if (!TrackerCompass.isTracker(result)) return;
 
-        if (event.getView().getPlayer() instanceof org.bukkit.entity.Player player) {
+        if (event.getView().getPlayer() instanceof Player player) {
             String perm = plugin.getConfig().getString(
                     "tracker-compass-recipe.permission", ""
             );

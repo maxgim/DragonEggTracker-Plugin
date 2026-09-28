@@ -17,7 +17,6 @@ public class HopperMoveListener implements Listener {
     public void onHopperMove(InventoryMoveItemEvent event) {
         if (!ContainerUtil.containsDragonEgg(event.getItem())) return;
 
-        // Hoppers are always blocked, same as the click-based checks.
         if (event.getSource().getType() == InventoryType.HOPPER
                 || event.getDestination().getType() == InventoryType.HOPPER
                 || ContainerUtil.isBlocked(event.getSource().getType())

@@ -8,12 +8,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
+
 public class RecipePreviewGUI {
 
     public static final String TITLE = "§5Dragon Egg Tracker Recipe";
 
     public static Inventory create(JavaPlugin plugin) {
-        // Use 36 slots fit full 3x3 crafting grid
         Inventory inv = Bukkit.createInventory(null, 36, TITLE);
 
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -21,39 +22,36 @@ public class RecipePreviewGUI {
             inv.setItem(i, glass);
         }
 
-        ConfigurationSection recipeSection =
+        ConfigurationSection section =
                 plugin.getConfig().getConfigurationSection("tracker-compass-recipe");
 
-        if (recipeSection == null) return inv;
+        if (section == null) return inv;
 
-        java.util.List<String> shape = recipeSection.getStringList("shape");
+        List<String> shape = section.getStringList("shape");
         if (shape.size() != 3) return inv;
 
-        ConfigurationSection ingredients = recipeSection.getConfigurationSection("ingredients");
+        ConfigurationSection ingredients = section.getConfigurationSection("ingredients");
         if (ingredients == null) return inv;
 
-        // Define the 3x3 crafting grid
-        int[][] craftingSlots = {
-                {10, 11, 12},  // Top row
-                {19, 20, 21},  // Middle row
-                {28, 29, 30}   // Bottom row
+        int[][] slots = {
+                {10, 11, 12},
+                {19, 20, 21},
+                {28, 29, 30}
         };
 
-        // Place items
         for (int row = 0; row < 3; row++) {
-            String shapeRow = shape.get(row);
-            for (int col = 0; col < Math.min(shapeRow.length(), 3); col++) {
-                char symbol = shapeRow.charAt(col);
-
+            String line = shape.get(row);
+            for (int col = 0; col < Math.min(line.length(), 3); col++) {
+                char symbol = line.charAt(col);
 
                 if (symbol == ' ') continue;
 
-                String materialName = ingredients.getString(String.valueOf(symbol));
-                if (materialName == null) continue;
+                String name = ingredients.getString(String.valueOf(symbol));
+                if (name == null) continue;
 
-                Material mat = Material.matchMaterial(materialName);
+                Material mat = Material.matchMaterial(name);
                 if (mat != null) {
-                    inv.setItem(craftingSlots[row][col], new ItemStack(mat));
+                    inv.setItem(slots[row][col], new ItemStack(mat));
                 }
             }
         }

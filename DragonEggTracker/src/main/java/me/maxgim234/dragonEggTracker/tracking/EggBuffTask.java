@@ -6,12 +6,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class EggBuffTask implements Runnable {
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
+    private final EggManager manager;
     private EggBuffListener buffListener;
 
-    public EggBuffTask(JavaPlugin plugin, EggManager eggManager) {
+    public EggBuffTask(JavaPlugin plugin, EggManager manager) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
+        this.manager = manager;
     }
 
     public void setBuffListener(EggBuffListener buffListener) {

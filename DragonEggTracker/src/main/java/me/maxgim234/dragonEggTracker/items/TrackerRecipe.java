@@ -29,7 +29,6 @@ public class TrackerRecipe {
 
         NamespacedKey key = new NamespacedKey(plugin, "dragon_egg_tracker");
 
-        // Remove existing recipe if it exists (for reload support)
         Bukkit.removeRecipe(key);
 
         ShapedRecipe recipe = new ShapedRecipe(key, TrackerCompass.create());
@@ -48,15 +47,15 @@ public class TrackerRecipe {
 
         for (Map.Entry<String, Object> entry : ingredients.getValues(false).entrySet()) {
             char symbol = entry.getKey().charAt(0);
-            String materialName = entry.getValue().toString();
+            String name = entry.getValue().toString();
 
-            Material material = Material.matchMaterial(materialName);
-            if (material == null) {
-                plugin.getLogger().warning("Invalid material in recipe: " + materialName);
+            Material mat = Material.matchMaterial(name);
+            if (mat == null) {
+                plugin.getLogger().warning("Invalid material in recipe: " + name);
                 continue;
             }
 
-            recipe.setIngredient(symbol, material);
+            recipe.setIngredient(symbol, mat);
         }
 
         Bukkit.addRecipe(recipe);

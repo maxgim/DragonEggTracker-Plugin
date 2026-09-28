@@ -28,14 +28,6 @@ public class GuiRestrictionListener implements Listener {
         return plugin.getConfig().getBoolean("gui-restriction.block-egg-in-other-guis", false);
     }
 
-    /**
-     * A "virtual" GUI is one created by a plugin (auction houses, teams
-     * menus, etc.) rather than a real placed/held container. Real
-     * containers always have a world location when opened, EXCEPT shulker
-     * boxes opened directly from hand — those are excluded explicitly so
-     * they keep being treated as normal storage (see prevent-containers
-     * for restricting those instead).
-     */
     private boolean isVirtualGui(Inventory inventory) {
         InventoryType type = inventory.getType();
 
@@ -77,13 +69,12 @@ public class GuiRestrictionListener implements Listener {
         Player player = event.getPlayer();
         if (!EggItemUtil.hasDragonEggInMainHand(player)) return;
 
-        // Strip the leading "/" and compare against the configured list.
-        String raw = event.getMessage().substring(1).toLowerCase(Locale.ROOT);
+        String cmd = event.getMessage().substring(1).toLowerCase(Locale.ROOT);
 
         for (String entry : blocked) {
             String needle = entry.toLowerCase(Locale.ROOT);
 
-            if (raw.equals(needle) || raw.startsWith(needle + " ")) {
+            if (cmd.equals(needle) || cmd.startsWith(needle + " ")) {
                 event.setCancelled(true);
                 player.sendMessage("§cYou can't sell the Dragon Egg while holding it!");
                 return;

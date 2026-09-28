@@ -9,17 +9,17 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 public class EggDropListener implements Listener {
 
-    private final EggManager eggManager;
+    private final EggManager manager;
 
-    public EggDropListener(EggManager eggManager) {
-        this.eggManager = eggManager;
+    public EggDropListener(EggManager manager) {
+        this.manager = manager;
     }
 
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         if (event.getItemDrop().getItemStack().getType() != Material.DRAGON_EGG) return;
 
-        eggManager.setEggLocation(
+        manager.setEggLocation(
                 event.getItemDrop().getLocation(),
                 EggState.DROPPED
         );

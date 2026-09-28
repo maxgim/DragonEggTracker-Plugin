@@ -1,5 +1,6 @@
 package me.maxgim234.dragonEggTracker.items;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -12,10 +13,10 @@ import java.util.List;
 
 public class TrackerCompass {
 
-    private static NamespacedKey KEY;
+    private static NamespacedKey key;
 
     public static void init(JavaPlugin plugin) {
-        KEY = new NamespacedKey(plugin, "dragon_egg_tracker");
+        key = new NamespacedKey(plugin, "dragon_egg_tracker");
     }
 
     public static ItemStack create() {
@@ -28,7 +29,7 @@ public class TrackerCompass {
         ));
 
         meta.getPersistentDataContainer().set(
-                KEY,
+                key,
                 PersistentDataType.BYTE,
                 (byte) 1
         );
@@ -42,10 +43,10 @@ public class TrackerCompass {
 
         return item.getItemMeta()
                 .getPersistentDataContainer()
-                .has(KEY, PersistentDataType.BYTE);
+                .has(key, PersistentDataType.BYTE);
     }
 
-    public static void setTarget(ItemStack item, org.bukkit.Location location) {
+    public static void setTarget(ItemStack item, Location location) {
         if (!(item.getItemMeta() instanceof CompassMeta meta)) return;
 
         meta.setLodestoneTracked(false);
