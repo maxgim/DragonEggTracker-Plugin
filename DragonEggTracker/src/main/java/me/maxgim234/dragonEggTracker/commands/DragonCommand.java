@@ -1,10 +1,10 @@
 package me.maxgim234.dragonEggTracker.commands;
 
 import me.maxgim234.dragonEggTracker.gui.RecipePreviewGUI;
+import me.maxgim234.dragonEggTracker.items.TrackerRecipe;
 import me.maxgim234.dragonEggTracker.tracking.EggManager;
 import me.maxgim234.dragonEggTracker.tracking.EggState;
 import me.maxgim234.dragonEggTracker.tracking.EggStatsManager;
-import me.maxgim234.dragonEggTracker.items.TrackerRecipe;
 import me.maxgim234.dragonEggTracker.util.ContainerUtil;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -27,27 +27,26 @@ import java.util.stream.Collectors;
 public class DragonCommand implements CommandExecutor, TabCompleter {
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
-    private final EggStatsManager statsManager;
+    private final EggManager manager;
+    private final EggStatsManager stats;
 
-    public DragonCommand(JavaPlugin plugin, EggManager eggManager, EggStatsManager statsManager) {
+    public DragonCommand(JavaPlugin plugin, EggManager manager, EggStatsManager stats) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
-        this.statsManager = statsManager;
+        this.manager = manager;
+        this.stats = stats;
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
-        // If no arguments, show help
         if (args.length == 0) {
             sendHelp(sender);
             return true;
         }
 
-        String subCommand = args[0].toLowerCase();
+        String sub = args[0].toLowerCase();
 
-        switch (subCommand) {
+        switch (sub) {
             case "help":
                 sendHelp(sender);
                 return true;
@@ -79,15 +78,14 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            List<String> completions = new ArrayList<>(Arrays.asList("help", "owner", "recipe", "top", "placeholders"));
+            List<String> options = new ArrayList<>(Arrays.asList("help", "owner", "recipe", "top", "placeholders"));
 
             if (sender.hasPermission("dragoneggtracker.admin")) {
-                completions.add("locate");
-                completions.add("reload");
+                options.add("locate");
+                options.add("reload");
             }
 
-            // autofill
-            return completions.stream()
+            return options.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }
@@ -117,7 +115,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean handleTop(CommandSender sender) {
-        List<Map.Entry<UUID, Long>> top = statsManager.getTop(3);
+        List<Map.Entry<UUID, Long>> top = stats.getTop(3);
 
         sender.sendMessage("§d§l═══════════════════════════════");
         sender.sendMessage("§d§lDragon Egg Top Holders");
@@ -129,7 +127,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
             String[] labels = {"§6#1", "§7#2", "§c#3"};
             for (int i = 0; i < top.size(); i++) {
                 Map.Entry<UUID, Long> entry = top.get(i);
-                sender.sendMessage(labels[i] + " §f" + statsManager.getName(entry.getKey())
+                sender.sendMessage(labels[i] + " §f" + stats.getName(entry.getKey())
                         + " §7- §f" + EggStatsManager.formatDuration(entry.getValue()));
             }
         }
@@ -159,9 +157,9 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        OfflinePlayer owner = eggManager.getOwner();
+        OfflinePlayer owner = manager.getOwner();
 
-        if (owner == null || eggManager.getOwnerName() == null) {
+        if (owner == null || manager.getOwnerName() == null) {
             sender.sendMessage("§cNo one has picked up the Dragon Egg yet.");
             return true;
         }
@@ -169,7 +167,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§d§l═══════════════════════════════");
         sender.sendMessage("§d§lDragon Egg Owner");
         sender.sendMessage("§d§l═══════════════════════════════");
-        sender.sendMessage("§7• Player: §f" + eggManager.getOwnerName());
+        sender.sendMessage("§7• Player: §f" + manager.getOwnerName());
         sender.sendMessage("§7• Online: " + (owner.isOnline() ? "§a✓ Yes" : "§c✗ No"));
         sender.sendMessage("§d§l═══════════════════════════════");
 
@@ -182,8 +180,8 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Location loc = eggManager.getEggLocation();
-        EggState state = eggManager.getEggState();
+        Location loc = manager.getEggLocation();
+        EggState state = manager.getEggState();
 
         if (loc == null || state == EggState.UNKNOWN) {
             sender.sendMessage("§cDragon Egg location is currently unknown.");

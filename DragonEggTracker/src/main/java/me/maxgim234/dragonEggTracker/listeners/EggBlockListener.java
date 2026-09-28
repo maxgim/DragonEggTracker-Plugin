@@ -11,11 +11,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class EggBlockListener implements Listener {
 
-    private final EggManager eggManager;
+    private final EggManager manager;
     private final JavaPlugin plugin;
 
-    public EggBlockListener(EggManager eggManager, JavaPlugin plugin) {
-        this.eggManager = eggManager;
+    public EggBlockListener(EggManager manager, JavaPlugin plugin) {
+        this.manager = manager;
         this.plugin = plugin;
     }
 
@@ -28,7 +28,7 @@ public class EggBlockListener implements Listener {
             return;
         }
 
-        eggManager.setEggLocation(
+        manager.setEggLocation(
                 event.getBlockPlaced().getLocation(),
                 EggState.BLOCK
         );
@@ -38,7 +38,7 @@ public class EggBlockListener implements Listener {
     public void onEggBreak(BlockBreakEvent event) {
         if (event.getBlock().getType() != Material.DRAGON_EGG) return;
 
-        eggManager.setEggLocation(
+        manager.setEggLocation(
                 event.getBlock().getLocation(),
                 EggState.DROPPED
         );

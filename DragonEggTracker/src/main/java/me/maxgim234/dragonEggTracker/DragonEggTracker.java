@@ -1,5 +1,6 @@
 package me.maxgim234.dragonEggTracker;
 
+import dev.faststats.bukkit.BukkitContext;
 import me.maxgim234.dragonEggTracker.commands.DragonCommand;
 import me.maxgim234.dragonEggTracker.economy.EconomyHook;
 import me.maxgim234.dragonEggTracker.items.TrackerCompass;
@@ -11,20 +12,15 @@ import me.maxgim234.dragonEggTracker.tracking.EggBuffTask;
 import me.maxgim234.dragonEggTracker.tracking.EggHoldTrackerTask;
 import me.maxgim234.dragonEggTracker.tracking.EggManager;
 import me.maxgim234.dragonEggTracker.tracking.EggStatsManager;
-
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
-import dev.faststats.bukkit.BukkitContext;
-
-
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DragonEggTracker extends JavaPlugin {
 
-
     private static DragonEggTracker instance;
-    private EggManager eggManager;
-    private EggStatsManager statsManager;
+    private EggManager manager;
+    private EggStatsManager stats;
 
     private final BukkitContext context = new BukkitContext.Factory(this, "168688ab401d457188de2487dfa34ff3")
             .metrics(dev.faststats.Metrics.Factory::create)
@@ -36,8 +32,8 @@ public final class DragonEggTracker extends JavaPlugin {
 
         saveDefaultConfig();
 
-        eggManager = new EggManager(this);
-        statsManager = new EggStatsManager(this);
+        manager = new EggManager(this);
+        stats = new EggStatsManager(this);
 
         if (EconomyHook.setup(this)) {
             getLogger().info("Vault economy hook enabled.");
@@ -50,12 +46,11 @@ public final class DragonEggTracker extends JavaPlugin {
                 new SimplePie("chart_id", () -> "My value")
         );
 
-        // Register listeners
         getServer().getPluginManager().registerEvents(
-                new EggPickupListener(this, eggManager, statsManager), this
+                new EggPickupListener(this, manager, stats), this
         );
         getServer().getPluginManager().registerEvents(
-                new InventoryBlockListener(this, eggManager), this
+                new InventoryBlockListener(this, manager), this
         );
         getServer().getPluginManager().registerEvents(
                 new HopperMoveListener(this), this
@@ -64,7 +59,7 @@ public final class DragonEggTracker extends JavaPlugin {
                 new DispenseListener(this), this
         );
         getServer().getPluginManager().registerEvents(
-                new EggBlockListener(eggManager, this), this
+                new EggBlockListener(manager, this), this
         );
         getServer().getPluginManager().registerEvents(
                 new RecipePreviewListener(), this
@@ -73,34 +68,30 @@ public final class DragonEggTracker extends JavaPlugin {
                 new RecipeCraftListener(this), this
         );
         getServer().getPluginManager().registerEvents(
-                new EggDropListener(eggManager), this
+                new EggDropListener(manager), this
         );
         getServer().getPluginManager().registerEvents(
                 new HopperPickupListener(), this
         );
         getServer().getPluginManager().registerEvents(
-                new EggDestructionListener(this, eggManager), this
+                new EggDestructionListener(this), this
         );
         getServer().getPluginManager().registerEvents(
                 new GuiRestrictionListener(this), this
         );
         getServer().getPluginManager().registerEvents(
-                new EggTheftListener(this, eggManager), this
+                new EggTheftListener(this, manager), this
         );
-        // Dragon Egg void rescue
         getServer().getPluginManager().registerEvents(
-                new EggVoidListener(this, eggManager), this );
+                new EggVoidListener(this, manager), this );
 
-        // Store EggBuffListener reference for use with EggBuffTask
-        EggBuffListener eggBuffListener = new EggBuffListener(this, eggManager);
+        EggBuffListener eggBuffListener = new EggBuffListener(this, manager);
         getServer().getPluginManager().registerEvents(eggBuffListener, this);
 
-        // tab completion
-        DragonCommand dragonCommand = new DragonCommand(this, eggManager, statsManager);
+        DragonCommand dragonCommand = new DragonCommand(this, manager, stats);
         getCommand("dragon").setExecutor(dragonCommand);
         getCommand("dragon").setTabCompleter(dragonCommand);
 
-        // Tracker compass
         TrackerCompass.init(this);
         TrackerRecipe.register(this);
 
@@ -110,46 +101,42 @@ public final class DragonEggTracker extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimer(
                 this,
-                new CompassTrackerTask(this, eggManager),
+                new CompassTrackerTask(this, manager),
                 20L,
                 interval
         );
 
-        // Buff check task
         if (getConfig().getBoolean("egg-holder-buffs.enabled")) {
-            EggBuffTask buffTask = new EggBuffTask(this, eggManager);
-            buffTask.setBuffListener(eggBuffListener); // Connect the listener
+            EggBuffTask buffTask = new EggBuffTask(this, manager);
+            buffTask.setBuffListener(eggBuffListener);
 
             getServer().getScheduler().runTaskTimer(
                     this,
                     buffTask,
                     20L,
-                    40L // Check every 2 seconds
+                    40L
             );
         }
 
-        // Hold-time tracking + hourly economy reward — runs every second
         getServer().getScheduler().runTaskTimer(
                 this,
-                new EggHoldTrackerTask(this, eggManager, statsManager),
+                new EggHoldTrackerTask(this, manager, stats),
                 20L,
                 20L
         );
 
-        // PlaceholderAPI expansion
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new DragonEggPlaceholders(this, eggManager, statsManager).register();
+            new DragonEggPlaceholders(this, manager, stats).register();
             getLogger().info("PlaceholderAPI expansion registered.");
         }
 
-        // Periodic autosave (egg data + stats), 0 disables it (only saves on plugin disable)
         long autoSaveInterval = getConfig().getLong("auto-save-interval", 6000L);
         if (autoSaveInterval > 0) {
             getServer().getScheduler().runTaskTimer(
                     this,
                     () -> {
-                        eggManager.saveData();
-                        statsManager.save();
+                        manager.saveData();
+                        stats.save();
                     },
                     autoSaveInterval,
                     autoSaveInterval
@@ -163,11 +150,11 @@ public final class DragonEggTracker extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (eggManager != null) {
-            eggManager.saveData();
+        if (manager != null) {
+            manager.saveData();
         }
-        if (statsManager != null) {
-            statsManager.save();
+        if (stats != null) {
+            stats.save();
         }
 
         context.shutdown();
@@ -175,16 +162,15 @@ public final class DragonEggTracker extends JavaPlugin {
         getLogger().info("DragonEggTracker disabled.");
     }
 
-    // Getters
     public static DragonEggTracker getInstance() {
         return instance;
     }
 
     public EggManager getEggManager() {
-        return eggManager;
+        return manager;
     }
 
     public EggStatsManager getStatsManager() {
-        return statsManager;
+        return stats;
     }
 }

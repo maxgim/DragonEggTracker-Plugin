@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class EggLocateCommand implements CommandExecutor {
 
-    private final EggManager eggManager;
+    private final EggManager manager;
 
-    public EggLocateCommand(EggManager eggManager) {
-        this.eggManager = eggManager;
+    public EggLocateCommand(EggManager manager) {
+        this.manager = manager;
     }
 
     @Override
@@ -24,8 +24,8 @@ public class EggLocateCommand implements CommandExecutor {
             return true;
         }
 
-        Location loc = eggManager.getEggLocation();
-        EggState state = eggManager.getEggState();
+        Location loc = manager.getEggLocation();
+        EggState state = manager.getEggState();
 
         if (loc == null || state == EggState.UNKNOWN) {
             sender.sendMessage("§cDragon Egg location is currently unknown.");

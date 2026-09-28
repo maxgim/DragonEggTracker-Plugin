@@ -13,26 +13,21 @@ public class EconomyHook {
     private EconomyHook() {
     }
 
-    /**
-     * Attempts to hook into Vault's Economy service. Safe to call even if
-     * Vault or an economy plugin isn't installed — it just leaves the hook
-     * disabled with no error/warning, per the plugin's requirements.
-     */
     public static boolean setup(JavaPlugin plugin) {
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
             economy = null;
             return false;
         }
 
-        RegisteredServiceProvider<Economy> rsp =
+        RegisteredServiceProvider<Economy> provider =
                 Bukkit.getServicesManager().getRegistration(Economy.class);
 
-        if (rsp == null) {
+        if (provider == null) {
             economy = null;
             return false;
         }
 
-        economy = rsp.getProvider();
+        economy = provider.getProvider();
         return economy != null;
     }
 
@@ -40,10 +35,6 @@ public class EconomyHook {
         return economy != null;
     }
 
-    /**
-     * Deposits money into a player's account. No-op if the economy hook
-     * isn't available or the amount is not positive.
-     */
     public static void deposit(OfflinePlayer player, double amount) {
         if (economy == null) return;
         if (amount <= 0) return;

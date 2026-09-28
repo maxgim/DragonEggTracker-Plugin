@@ -1,10 +1,12 @@
 package me.maxgim234.dragonEggTracker.commands;
 
+import me.maxgim234.dragonEggTracker.gui.RecipePreviewGUI;
 import me.maxgim234.dragonEggTracker.items.TrackerRecipe;
 import me.maxgim234.dragonEggTracker.util.ContainerUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class DragonTrackerCommand implements CommandExecutor {
@@ -16,7 +18,7 @@ public class DragonTrackerCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("dragoneggtracker.admin")) {
@@ -25,17 +27,14 @@ public class DragonTrackerCommand implements CommandExecutor {
             }
 
             if (args.length == 1 && args[0].equalsIgnoreCase("recipe")) {
-                if (!(sender instanceof org.bukkit.entity.Player player)) {
+                if (!(sender instanceof Player player)) {
                     sender.sendMessage("§cOnly players can use this.");
                     return true;
                 }
 
-                player.openInventory(
-                        me.maxgim234.dragonEggTracker.gui.RecipePreviewGUI.create(plugin)
-                );
+                player.openInventory(RecipePreviewGUI.create(plugin));
                 return true;
             }
-
 
             plugin.reloadConfig();
             ContainerUtil.load(plugin);
@@ -47,7 +46,5 @@ public class DragonTrackerCommand implements CommandExecutor {
 
         sender.sendMessage("§cUsage: /dragontracker reload");
         return true;
-
-
     }
 }

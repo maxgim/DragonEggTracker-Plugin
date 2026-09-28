@@ -9,62 +9,56 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
-/**
- * Runs once per second. Tracks all-time hold-time stats (for the leaderboard
- * and placeholders) and continuous-hold time (for the hourly economy reward,
- * which resets if the egg changes hands before an hour is reached).
- */
 public class EggHoldTrackerTask implements Runnable {
 
     private static final long HOUR_SECONDS = 3600L;
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
-    private final EggStatsManager statsManager;
+    private final EggManager manager;
+    private final EggStatsManager stats;
 
-    private UUID lastHolder;
-    private long continuousHeldSeconds = 0;
+    private UUID lastOwner;
+    private long streak = 0;
 
-    public EggHoldTrackerTask(JavaPlugin plugin, EggManager eggManager, EggStatsManager statsManager) {
+    public EggHoldTrackerTask(JavaPlugin plugin, EggManager manager, EggStatsManager stats) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
-        this.statsManager = statsManager;
+        this.manager = manager;
+        this.stats = stats;
     }
 
     @Override
     public void run() {
-        OfflinePlayer owner = eggManager.getOwner();
+        OfflinePlayer owner = manager.getOwner();
         if (owner == null || !owner.isOnline()) {
-            resetContinuous();
+            resetStreak();
             return;
         }
 
         Player player = owner.getPlayer();
         if (player == null || !EggItemUtil.hasDragonEggAnywhere(player)) {
-            resetContinuous();
+            resetStreak();
             return;
         }
 
         UUID uuid = player.getUniqueId();
 
-        // The holder changed since the last tick — restart the continuous counter.
-        if (!uuid.equals(lastHolder)) {
-            lastHolder = uuid;
-            continuousHeldSeconds = 0;
+        if (!uuid.equals(lastOwner)) {
+            lastOwner = uuid;
+            streak = 0;
         }
 
-        statsManager.addHeldSeconds(uuid, player.getName(), 1);
-        continuousHeldSeconds++;
+        stats.addHeldSeconds(uuid, player.getName(), 1);
+        streak++;
 
-        if (continuousHeldSeconds >= HOUR_SECONDS) {
-            continuousHeldSeconds = 0;
+        if (streak >= HOUR_SECONDS) {
+            streak = 0;
             payHourlyReward(player);
         }
     }
 
-    private void resetContinuous() {
-        lastHolder = null;
-        continuousHeldSeconds = 0;
+    private void resetStreak() {
+        lastOwner = null;
+        streak = 0;
     }
 
     private void payHourlyReward(Player player) {

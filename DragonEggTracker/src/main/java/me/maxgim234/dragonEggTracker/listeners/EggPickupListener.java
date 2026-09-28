@@ -2,8 +2,8 @@ package me.maxgim234.dragonEggTracker.listeners;
 
 import me.maxgim234.dragonEggTracker.economy.EconomyHook;
 import me.maxgim234.dragonEggTracker.tracking.EggManager;
-import me.maxgim234.dragonEggTracker.tracking.EggStatsManager;
 import me.maxgim234.dragonEggTracker.tracking.EggState;
+import me.maxgim234.dragonEggTracker.tracking.EggStatsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,13 +18,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class EggPickupListener implements Listener {
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
-    private final EggStatsManager statsManager;
+    private final EggManager manager;
+    private final EggStatsManager stats;
 
-    public EggPickupListener(JavaPlugin plugin, EggManager eggManager, EggStatsManager statsManager) {
+    public EggPickupListener(JavaPlugin plugin, EggManager manager, EggStatsManager stats) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
-        this.statsManager = statsManager;
+        this.manager = manager;
+        this.stats = stats;
     }
 
     @EventHandler
@@ -34,22 +34,20 @@ public class EggPickupListener implements Listener {
         ItemStack item = event.getItem().getItemStack();
         if (item.getType() != Material.DRAGON_EGG) return;
 
-        eggManager.setOwner(
+        manager.setOwner(
                 player.getUniqueId(),
                 player.getName()
         );
 
-        eggManager.setEggLocation(
+        manager.setEggLocation(
                 player.getLocation(),
                 EggState.PLAYER
         );
 
-        // Play sound effect
         if (plugin.getConfig().getBoolean("egg-pickup-announcement.sound-enabled", true)) {
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
         }
 
-        // Announcement
         if (plugin.getConfig().getBoolean("egg-pickup-announcement.enabled")) {
             String msg = plugin.getConfig()
                     .getString("egg-pickup-announcement.message", "")
@@ -60,23 +58,21 @@ public class EggPickupListener implements Listener {
             );
         }
 
-        // First-pickup economy reward (one-time, per player)
         if (plugin.getConfig().getBoolean("economy-rewards.first-pickup.enabled", false)
                 && EconomyHook.isEnabled()
-                && !statsManager.hasReceivedFirstPickupReward(player.getUniqueId())) {
+                && !stats.hasReceivedFirstPickupReward(player.getUniqueId())) {
 
-            statsManager.markFirstPickupRewarded(player.getUniqueId());
+            stats.markFirstPickupRewarded(player.getUniqueId());
 
             double amount = plugin.getConfig().getDouble("economy-rewards.first-pickup.amount", 0);
             EconomyHook.deposit(player, amount);
 
-            String rewardMsg = plugin.getConfig().getString(
+            String msg = plugin.getConfig().getString(
                     "economy-rewards.first-pickup.message",
                     "&d&lYou earned &e$%amount% &d&lfor picking up the Dragon Egg for the first time!"
             ).replace("%amount%", String.valueOf(amount));
 
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', rewardMsg));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
         }
     }
 }
-

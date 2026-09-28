@@ -17,50 +17,43 @@ import java.util.UUID;
 public class EggStatsManager {
 
     private final JavaPlugin plugin;
-    private final File statsFile;
+    private final File file;
     private final YamlConfiguration data;
 
-    // uuid -> all-time total seconds held
-    private final Map<UUID, Long> totalHeldSeconds = new HashMap<>();
-    // uuid -> last known player name, so the leaderboard doesn't need OfflinePlayer lookups
-    private final Map<UUID, String> playerNames = new HashMap<>();
-    // players who have already received the one-time first-pickup reward
-    private final Set<UUID> firstPickupRewarded = new HashSet<>();
+    private final Map<UUID, Long> heldSeconds = new HashMap<>();
+    private final Map<UUID, String> names = new HashMap<>();
+    private final Set<UUID> rewarded = new HashSet<>();
 
     public EggStatsManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.statsFile = new File(plugin.getDataFolder(), "egg-stats.yml");
-        this.data = YamlConfiguration.loadConfiguration(statsFile);
+        this.file = new File(plugin.getDataFolder(), "egg-stats.yml");
+        this.data = YamlConfiguration.loadConfiguration(file);
         load();
     }
 
     public void addHeldSeconds(UUID uuid, String name, long seconds) {
-        totalHeldSeconds.merge(uuid, seconds, Long::sum);
-        playerNames.put(uuid, name);
+        heldSeconds.merge(uuid, seconds, Long::sum);
+        names.put(uuid, name);
     }
 
     public long getTotalHeldSeconds(UUID uuid) {
-        return totalHeldSeconds.getOrDefault(uuid, 0L);
+        return heldSeconds.getOrDefault(uuid, 0L);
     }
 
     public boolean hasReceivedFirstPickupReward(UUID uuid) {
-        return firstPickupRewarded.contains(uuid);
+        return rewarded.contains(uuid);
     }
 
     public void markFirstPickupRewarded(UUID uuid) {
-        firstPickupRewarded.add(uuid);
+        rewarded.add(uuid);
     }
 
     public String getName(UUID uuid) {
-        return playerNames.getOrDefault(uuid, "Unknown");
+        return names.getOrDefault(uuid, "Unknown");
     }
 
-    /**
-     * Returns up to {@code count} players sorted by all-time total hold
-     * time, descending.
-     */
     public List<Map.Entry<UUID, Long>> getTop(int count) {
-        List<Map.Entry<UUID, Long>> entries = new ArrayList<>(totalHeldSeconds.entrySet());
+        List<Map.Entry<UUID, Long>> entries = new ArrayList<>(heldSeconds.entrySet());
         entries.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
 
         if (entries.size() > count) {
@@ -80,11 +73,11 @@ public class EggStatsManager {
     }
 
     public void load() {
-        totalHeldSeconds.clear();
-        playerNames.clear();
-        firstPickupRewarded.clear();
+        heldSeconds.clear();
+        names.clear();
+        rewarded.clear();
 
-        if (!statsFile.exists()) return;
+        if (!file.exists()) return;
 
         ConfigurationSection players = data.getConfigurationSection("players");
         if (players != null) {
@@ -94,38 +87,36 @@ public class EggStatsManager {
                     long seconds = players.getLong(key + ".seconds", 0L);
                     String name = players.getString(key + ".name", "Unknown");
 
-                    totalHeldSeconds.put(uuid, seconds);
-                    playerNames.put(uuid, name);
+                    heldSeconds.put(uuid, seconds);
+                    names.put(uuid, name);
                 } catch (IllegalArgumentException ignored) {
-                    // malformed UUID key, skip
                 }
             }
         }
 
         for (String key : data.getStringList("first-pickup-rewarded")) {
             try {
-                firstPickupRewarded.add(UUID.fromString(key));
+                rewarded.add(UUID.fromString(key));
             } catch (IllegalArgumentException ignored) {
-                // malformed UUID entry, skip
             }
         }
     }
 
     public void save() {
         try {
-            for (Map.Entry<UUID, Long> entry : totalHeldSeconds.entrySet()) {
+            for (Map.Entry<UUID, Long> entry : heldSeconds.entrySet()) {
                 String key = entry.getKey().toString();
                 data.set("players." + key + ".seconds", entry.getValue());
-                data.set("players." + key + ".name", playerNames.getOrDefault(entry.getKey(), "Unknown"));
+                data.set("players." + key + ".name", names.getOrDefault(entry.getKey(), "Unknown"));
             }
 
-            List<String> rewarded = new ArrayList<>();
-            for (UUID uuid : firstPickupRewarded) {
-                rewarded.add(uuid.toString());
+            List<String> ids = new ArrayList<>();
+            for (UUID uuid : rewarded) {
+                ids.add(uuid.toString());
             }
-            data.set("first-pickup-rewarded", rewarded);
+            data.set("first-pickup-rewarded", ids);
 
-            data.save(statsFile);
+            data.save(file);
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to save egg stats!");
             e.printStackTrace();

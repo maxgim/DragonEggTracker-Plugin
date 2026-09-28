@@ -12,17 +12,17 @@ import java.util.Set;
 
 public class ContainerUtil {
 
-    private static final Set<InventoryType> blockedContainers = new HashSet<>();
+    private static final Set<InventoryType> blocked = new HashSet<>();
     private static boolean blockAll = false;
 
     public static void load(JavaPlugin plugin) {
-        blockedContainers.clear();
+        blocked.clear();
         blockAll = plugin.getConfig().getBoolean("prevent-all-containers", false);
 
-        List<String> list = plugin.getConfig().getStringList("prevent-containers");
-        for (String name : list) {
+        List<String> names = plugin.getConfig().getStringList("prevent-containers");
+        for (String name : names) {
             try {
-                blockedContainers.add(InventoryType.valueOf(name));
+                blocked.add(InventoryType.valueOf(name));
             } catch (IllegalArgumentException e) {
                 if (name.equals("HOPPER_MINECART")) {
                     plugin.getLogger().info("[DragonEggTracker] Note: HOPPER_MINECART is not a valid InventoryType. Hopper minecarts use the HOPPER type, which is already blocked by the code.");
@@ -38,13 +38,9 @@ public class ContainerUtil {
     }
 
     public static boolean isBlocked(InventoryType type) {
-        return blockedContainers.contains(type);
+        return blocked.contains(type);
     }
 
-    /**
-     * Returns true if the given item is a dragon egg, or a bundle
-     * containing a dragon egg anywhere in its contents.
-     */
     public static boolean containsDragonEgg(ItemStack item) {
         if (item == null) return false;
         if (item.getType() == Material.DRAGON_EGG) return true;

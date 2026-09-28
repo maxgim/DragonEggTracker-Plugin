@@ -8,7 +8,7 @@ import org.bukkit.event.block.BlockDispenseEvent;
 
 public class DispenseListener implements Listener {
 
-    public DispenseListener(DragonEggTracker dragonEggTracker) {
+    public DispenseListener(DragonEggTracker plugin) {
     }
 
     @EventHandler

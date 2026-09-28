@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class EggOwnerCommand implements CommandExecutor {
 
-    private final EggManager eggManager;
+    private final EggManager manager;
 
-    public EggOwnerCommand(EggManager eggManager) {
-        this.eggManager = eggManager;
+    public EggOwnerCommand(EggManager manager) {
+        this.manager = manager;
     }
 
     @Override
@@ -24,15 +24,15 @@ public class EggOwnerCommand implements CommandExecutor {
             return true;
         }
 
-        OfflinePlayer owner = eggManager.getOwner();
+        OfflinePlayer owner = manager.getOwner();
 
-        if (owner == null || eggManager.getOwnerName() == null) {
+        if (owner == null || manager.getOwnerName() == null) {
             sender.sendMessage("§cNo one has picked up the Dragon Egg yet.");
             return true;
         }
 
         sender.sendMessage("§dDragon Egg Owner");
-        sender.sendMessage("§7• Player: §f" + eggManager.getOwnerName());
+        sender.sendMessage("§7• Player: §f" + manager.getOwnerName());
         sender.sendMessage("§7• Online: §f" + (owner.isOnline() ? "Yes" : "No"));
 
         return true;

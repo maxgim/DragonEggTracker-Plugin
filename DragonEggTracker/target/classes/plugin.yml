@@ -1,5 +1,5 @@
 name: DragonEggTracker
-version: '2.0.2b'
+version: '2.1.1b'
 main: me.maxgim234.dragonEggTracker.DragonEggTracker
 api-version: '1.21'
 softdepend: [PlaceholderAPI, Vault]

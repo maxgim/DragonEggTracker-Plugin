@@ -16,13 +16,13 @@ import java.util.UUID;
 public class DragonEggPlaceholders extends PlaceholderExpansion {
 
     private final JavaPlugin plugin;
-    private final EggManager eggManager;
-    private final EggStatsManager statsManager;
+    private final EggManager manager;
+    private final EggStatsManager stats;
 
-    public DragonEggPlaceholders(JavaPlugin plugin, EggManager eggManager, EggStatsManager statsManager) {
+    public DragonEggPlaceholders(JavaPlugin plugin, EggManager manager, EggStatsManager stats) {
         this.plugin = plugin;
-        this.eggManager = eggManager;
-        this.statsManager = statsManager;
+        this.manager = manager;
+        this.stats = stats;
     }
 
     @Override
@@ -47,37 +47,37 @@ public class DragonEggPlaceholders extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
-        String key = params.toLowerCase();
+        String param = params.toLowerCase();
 
-        switch (key) {
+        switch (param) {
             case "holder":
-                return eggManager.getOwnerName() == null ? "None" : eggManager.getOwnerName();
+                return manager.getOwnerName() == null ? "None" : manager.getOwnerName();
 
             case "state":
-                return eggManager.getEggState() == null ? "UNKNOWN" : eggManager.getEggState().name();
+                return manager.getEggState() == null ? "UNKNOWN" : manager.getEggState().name();
 
             case "world": {
-                Location loc = eggManager.getEggLocation();
+                Location loc = manager.getEggLocation();
                 return (loc == null || loc.getWorld() == null) ? "None" : loc.getWorld().getName();
             }
 
             case "x": {
-                Location loc = eggManager.getEggLocation();
+                Location loc = manager.getEggLocation();
                 return loc == null ? "0" : String.valueOf(loc.getBlockX());
             }
 
             case "y": {
-                Location loc = eggManager.getEggLocation();
+                Location loc = manager.getEggLocation();
                 return loc == null ? "0" : String.valueOf(loc.getBlockY());
             }
 
             case "z": {
-                Location loc = eggManager.getEggLocation();
+                Location loc = manager.getEggLocation();
                 return loc == null ? "0" : String.valueOf(loc.getBlockZ());
             }
 
             case "online": {
-                OfflinePlayer owner = eggManager.getOwner();
+                OfflinePlayer owner = manager.getOwner();
                 return (owner != null && owner.isOnline()) ? "Yes" : "No";
             }
 
@@ -85,19 +85,15 @@ public class DragonEggPlaceholders extends PlaceholderExpansion {
                 break;
         }
 
-        if (key.startsWith("top_")) {
-            return resolveTop(key);
+        if (param.startsWith("top_")) {
+            return resolveTop(param);
         }
 
         return null;
     }
 
-    /**
-     * Handles %dragoneggtracker_top_1%, _top_2%, _top_3% (player name) and
-     * %dragoneggtracker_top_1_time%, etc. (formatted total hold duration).
-     */
     private String resolveTop(String key) {
-        String[] parts = key.split("_"); // ["top", "<rank>", "time"?]
+        String[] parts = key.split("_");
         if (parts.length < 2) return null;
 
         int rank;
@@ -108,17 +104,17 @@ public class DragonEggPlaceholders extends PlaceholderExpansion {
         }
         if (rank < 1) return null;
 
-        boolean wantsTime = parts.length >= 3 && parts[2].equals("time");
+        boolean wantTime = parts.length >= 3 && parts[2].equals("time");
 
-        List<Map.Entry<UUID, Long>> top = statsManager.getTop(rank);
+        List<Map.Entry<UUID, Long>> top = stats.getTop(rank);
         if (top.size() < rank) {
-            return wantsTime ? "0s" : "None";
+            return wantTime ? "0s" : "None";
         }
 
         Map.Entry<UUID, Long> entry = top.get(rank - 1);
 
-        return wantsTime
+        return wantTime
                 ? EggStatsManager.formatDuration(entry.getValue())
-                : statsManager.getName(entry.getKey());
+                : stats.getName(entry.getKey());
     }
 }
